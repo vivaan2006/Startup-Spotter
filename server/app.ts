@@ -26,13 +26,13 @@ mongoose
   .then(() => {
     console.log('✅ MongoDB (Atlas) connected');
 
-    // 5) Mount your API routes only after DB connection
     app.use("/api/startups", startupRoutes);
+    console.log("✅ /api/startups route registered"); // <--- Add this
 
-    // 6) Root route
-    app.get('/', (_req: Request, res: Response) => {
-      console.log('↪  Hit GET /');
-      res.status(200).send('✅ OK – root is reachable');
+    // Optional: confirm other things like root works
+    app.get("/", (_req, res) => {
+      console.log("↪ Hit GET /");
+      res.status(200).send("✅ Root OK");
     });
 
     // 7) 404 handler for unhandled routes
