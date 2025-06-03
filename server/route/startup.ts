@@ -1,5 +1,5 @@
 import express from "express";
-import Startup from "../src/models/Startup";
+import Startup from "../../models/Startup";
 
 const router = express.Router();
 
