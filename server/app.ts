@@ -5,6 +5,7 @@ import cors from 'cors';
 import mongoose from 'mongoose';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
+import startupRoutes from "./src/routes/startup";
 
 dotenv.config();  // ← loads PORT and MONGO_URI from server/.env
 
@@ -15,6 +16,9 @@ app.use(cors());
 
 // 2) Parse JSON bodies
 app.use(express.json());
+
+app.use("/api/startups", startupRoutes);
+
 
 // 3) HTTP request logger
 app.use(morgan('dev'));
