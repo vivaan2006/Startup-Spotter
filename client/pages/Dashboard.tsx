@@ -1,6 +1,7 @@
 // main dashboard with search + result cards.
 import { useEffect, useState } from "react";
 import ResultCard from "../components/ResultCard";
+import CreateStartupForm from "../components/CreateStartupForm";
 
 interface Startup {
   _id: string;
@@ -12,6 +13,10 @@ interface Startup {
 
 const Dashboard = () => {
   const [startups, setStartups] = useState<Startup[]>([]);
+
+  const addStartup = (s: Startup) => {
+    setStartups((prev) => [s, ...prev]);
+  };
 
 useEffect(() => {
   fetch("/api/startups")
@@ -26,6 +31,9 @@ useEffect(() => {
   return (
     <div className="max-w-4xl mx-auto p-6">
       <h1 className="text-3xl font-bold mb-4">Startup Spotter 🚀</h1>
+      <div className="mb-6">
+        <CreateStartupForm onAdd={addStartup} />
+      </div>
       {startups.length === 0 ? (
         <p className="text-gray-500">No startups yet.</p>
       ) : (
