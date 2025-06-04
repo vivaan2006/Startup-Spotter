@@ -6,6 +6,7 @@ import mongoose from 'mongoose';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
 import startupRoutes from "./src/routes/startup";
+import searchRoutes from "./src/routes/search";
 
 dotenv.config();  // ← loads PORT and MONGO_URI from server/.env
 
@@ -29,6 +30,8 @@ mongoose
     app.use("/api/startups", startupRoutes);
     console.log("✅ /api/startups route registered"); // <--- Add this
 
+    app.use("/api/search", searchRoutes)
+    
     // Optional: confirm other things like root works
     app.get("/", (_req, res) => {
       console.log("↪ Hit GET /");
@@ -39,7 +42,7 @@ mongoose
     app.use((_req, res) => {
       res.status(404).json({ error: 'Not Found' });
     });
-
+    
     // 8) Start server
     const PORT = parseInt(process.env.PORT || '5000', 10);
     app.listen(PORT, () => {
