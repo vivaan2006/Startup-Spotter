@@ -1,6 +1,7 @@
 // main dashboard with search + result cards.
 import { useEffect, useState } from "react";
 import ResultCard from "../components/ResultCard";
+import SearchBar from "../components/SearchBar";
 
 interface Startup {
   _id: string;
@@ -41,6 +42,7 @@ useEffect(() => {
           ))}
         </div>
       )}
+      <SearchBar />
     </div>
   );
 };
