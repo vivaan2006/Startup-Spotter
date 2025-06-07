@@ -1,28 +1,29 @@
 import React from "react";
 
-interface SelectedStartupDetailProps {
+interface Props {
   name: string;
   summary: string;
   tags: string[];
   website: string;
 }
 
-const SelectedStartupDetail: React.FC<SelectedStartupDetailProps> = ({
-  name,
-  summary,
-  tags,
-  website,
-}) => {
+const SelectedStartupDetail = ({ name, summary, tags, website }: Props) => {
   return (
-    <div className="max-w-2xl bg-[#1a1a1a] p-8 rounded-2xl shadow-lg border border-[#024950]/30 text-[#AFDDE5]">
-      <h2 className="text-3xl font-bold text-[#0FA4AF] mb-4">{name}</h2>
-      <p className="text-base mb-4 leading-relaxed">{summary}</p>
-      <p className="text-sm mb-4 text-[#AFDDE5]/80">Tags: {tags.join(", ")}</p>
+    <div className="bg-[#024950] text-[#AFDDE5] p-8 rounded-2xl shadow-xl max-w-3xl w-full">
+      <h2 className="text-3xl font-bold mb-3">{name}</h2>
+      <p className="mb-6 leading-relaxed">{summary}</p>
+      <div className="flex flex-wrap gap-2 mb-6">
+        {tags.map((tag, idx) => (
+          <span key={idx} className="bg-[#0FA4AF] text-white text-xs font-semibold px-3 py-1 rounded-full">
+            {tag}
+          </span>
+        ))}
+      </div>
       <a
         href={website}
         target="_blank"
         rel="noreferrer"
-        className="inline-block px-6 py-3 bg-[#0FA4AF] text-[#003135] font-medium rounded-lg hover:bg-[#AFDDE5] transition"
+        className="inline-block bg-[#0FA4AF] text-white px-6 py-3 rounded-lg hover:bg-cyan-400 transition"
       >
         Visit Website
       </a>

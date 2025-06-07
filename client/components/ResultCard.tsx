@@ -2,26 +2,39 @@ import React from "react";
 
 interface ResultCardProps {
   name: string;
-  summary?: string;
-  tags?: string[];
+  summary: string;
+  tags: string[];
   website: string;
+  onClick?: () => void;
+  selected?: boolean;
 }
 
-const ResultCard: React.FC<ResultCardProps> = ({ name, summary, tags = [], website }) => {
+const ResultCard = ({ name, summary, tags, website, onClick, selected = false }: ResultCardProps) => {
   return (
-    <div className="p-4 rounded-xl shadow-md bg-[#1a1a1a] hover:shadow-lg transition-all border border-[#024950]/30">
-      <h2 className="text-lg font-semibold text-[#AFDDE5]">{name}</h2>
-      {summary && <p className="text-sm text-gray-400 mt-1">{summary}</p>}
-      {tags.length > 0 && (
-        <p className="text-xs text-[#0FA4AF] mt-1">Tags: {tags.join(", ")}</p>
-      )}
+    <div
+      onClick={onClick}
+      className={`cursor-pointer p-5 rounded-2xl border transition-shadow duration-300 ${
+        selected
+          ? "bg-[#024950] text-white shadow-lg border-[#0FA4AF]"
+          : "bg-[#003135] text-[#AFDDE5] border-[#024950] hover:shadow-md hover:border-[#0FA4AF]"
+      }`}
+    >
+      <h2 className="text-xl font-bold">{name}</h2>
+      <p className="text-sm mt-2">{summary}</p>
+      <div className="mt-3 flex flex-wrap gap-2">
+        {tags.map((tag, i) => (
+          <span key={i} className="bg-[#0FA4AF] text-white text-xs font-medium px-3 py-1 rounded-full">
+            {tag}
+          </span>
+        ))}
+      </div>
       <a
         href={website}
         target="_blank"
-        rel="noopener noreferrer"
-        className="inline-block mt-2 text-[#AFDDE5] text-sm underline hover:text-[#0FA4AF] transition"
+        rel="noreferrer"
+        className="block mt-4 text-sm underline text-[#AFDDE5] hover:text-cyan-300 transition"
       >
-        Visit Website
+        Visit Website ↗
       </a>
     </div>
   );
