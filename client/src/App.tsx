@@ -2,7 +2,7 @@ import Dashboard from "../pages/Dashboard";
 
 function App() {
   return (
-    <div className="bg-gray-100 min-h-screen">
+    <div className="bg-darknavy min-h-screen text-lightblue">
       <Dashboard />
     </div>
   );
