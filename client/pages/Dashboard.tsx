@@ -1,72 +1,10 @@
-// import React, { useEffect, useState } from 'react';
-// import ResultCard from '../components/ResultCard';
-// import SearchBar from '../components/SearchBar';
-
-// interface Startup {
-//   _id: string;
-//   name: string;
-//   summary: string;
-//   tags: string[];
-//   website: string;
-// }
-
-// export default function Dashboard() {
-//   const [startups, setStartups] = useState<Startup[]>([]);
-//   const [loading, setLoading] = useState(true);
-//   const [error, setError] = useState<string | null>(null);
-//   const [search, setSearch] = useState('');
-
-//   useEffect(() => {
-//     fetch('/api/startups')
-//       .then(res => {
-//         if (!res.ok) throw new Error(`HTTP ${res.status}`);
-//         return res.json() as Promise<Startup[]>;
-//       })
-//       .then(setStartups)
-//       .catch(err => setError(err.message))
-//       .finally(() => setLoading(false));
-//   }, []);
-
-//   const filtered = startups.filter(s =>
-//     s.name.toLowerCase().includes(search.toLowerCase()) ||
-//     s.tags.some(t => t.toLowerCase().includes(search.toLowerCase()))
-//   );
-
-//   return (
-//     <div className="bg-mint min-h-screen font-sans">
-//       <div className="max-w-4xl mx-auto p-6">
-//         <h1 className="text-4xl font-bold text-slate mb-6 flex items-center">
-//           <span className="text-peach">Startup</span> Spotter<span className="ml-2">🚀</span>
-//         </h1>
-
-//         <SearchBar
-//           placeholder="Search startups..."
-//           onSearch={q => setSearch(q)}
-//         />
-
-//         <div className="space-y-6">
-//           {loading && <p className="text-slate">Loading startups…</p>}
-//           {error && <p className="text-peach">Error: {error}</p>}
-//           {!loading && !filtered.length && (
-//             <p className="text-slate">No startups match your search.</p>
-//           )}
-//           {filtered.map(s => (
-//             <ResultCard
-//               key={s._id}
-//               name={s.name}
-//               summary={s.summary}
-//               tags={s.tags}
-//               website={s.website}
-//             />
-//           ))}
-//         </div>
-//       </div>
-//     </div>
-//   );
-// }
 import { useEffect, useState } from "react";
-import ResultCard from "../components/ResultCard";
-import SearchBar from "../components/SearchBar";
+
+// Proper TypeScript interfaces
+interface SearchBarProps {
+  placeholder?: string;
+  onSearch?: (value: string) => void;
+}
 
 interface Startup {
   _id: string;
@@ -76,80 +14,310 @@ interface Startup {
   website: string;
 }
 
-const Dashboard = () => {
+interface ResultCardProps {
+  name: string;
+  summary: string;
+  tags: string[];
+  website: string;
+}
+
+// Built-in SearchBar Component with proper types
+const SearchBar: React.FC<SearchBarProps> = ({ placeholder = "Search...", onSearch }) => {
+  const [value, setValue] = useState<string>("");
+  
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setValue(e.target.value);
+    if (onSearch) {
+      onSearch(e.target.value);
+    }
+  };
+
+  return (
+    <div className="relative group">
+      <input
+        type="text"
+        value={value}
+        onChange={handleChange}
+        placeholder={placeholder}
+        className="w-full px-5 py-4 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-teal-400/50 focus:border-teal-400/50 transition-all duration-300 backdrop-blur-xl hover:bg-white/10"
+      />
+      <div className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white/60 group-focus-within:text-teal-400 transition-colors duration-300">
+        🔍
+      </div>
+    </div>
+  );
+};
+
+// Built-in ResultCard Component with proper types
+const ResultCard: React.FC<ResultCardProps> = ({ name, summary, tags, website }) => {
+  return (
+    <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-5 hover:border-teal-400/30 hover:bg-white/10 transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-teal-500/10 group cursor-pointer">
+      <div className="flex items-start justify-between mb-3">
+        <h3 className="font-bold text-white group-hover:text-teal-200 transition-colors duration-300 text-lg">
+          {name}
+        </h3>
+        {website && (
+          <a
+            href={website}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-teal-400 hover:text-teal-300 transition-all duration-300 hover:scale-110 text-lg"
+            onClick={(e) => e.stopPropagation()}
+          >
+            🔗
+          </a>
+        )}
+      </div>
+      <p className="text-sm text-white/70 mb-4 leading-relaxed line-clamp-3">{summary}</p>
+      <div className="flex flex-wrap gap-2">
+        {tags.map((tag: string, index: number) => (
+          <span
+            key={index}
+            className="px-3 py-1 bg-teal-500/20 text-teal-200 text-xs font-medium rounded-full border border-teal-500/30 hover:bg-teal-500/30 transition-colors duration-300"
+          >
+            {tag}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+const Dashboard: React.FC = () => {
   const [startups, setStartups] = useState<Startup[]>([]);
-  const [selected, setSelected] = useState<Startup | null>(null);
+  const [search, setSearch] = useState<string>("");
+  const [isLoaded, setIsLoaded] = useState<boolean>(false);
 
   useEffect(() => {
+    // Simulate loading animation
+    setTimeout(() => setIsLoaded(true), 500);
+    
     fetch("/api/startups")
       .then((res) => res.json())
-      .then(setStartups)
+      .then((data: Startup[]) => setStartups(data))
       .catch((err) => console.error("❌ Failed to fetch startups:", err));
   }, []);
 
+  const filtered = startups.filter((s) =>
+    s.name.toLowerCase().includes(search.toLowerCase()) ||
+    s.tags.some((tag) => tag.toLowerCase().includes(search.toLowerCase()))
+  );
+
   return (
-    <div className="flex h-screen bg-[#1B1B1B] text-[#D1E8E2] font-sans">
-      {/* Sidebar */}
-      <aside className="w-96 bg-[#2C3531] border-r border-gray-700 flex flex-col">
-        <header className="p-6">
-          <h1 className="text-3xl font-bold text-white flex items-center justify-between">
-            StartupSpotter <span className="text-2xl">🚀</span>
-          </h1>
-        </header>
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-teal-900 text-white font-sans overflow-hidden">
+      
+      {/* Animated background elements */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-10 -left-10 w-80 h-80 bg-teal-500/10 rounded-full blur-3xl animate-pulse animate-float"></div>
+        <div className="absolute top-1/2 -right-20 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse animate-float-delay"></div>
+        <div className="absolute -bottom-20 left-1/3 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl animate-pulse animate-float-slow"></div>
+      </div>
 
-        <div className="px-4 pb-4">
-          <SearchBar placeholder="Search startups..." />
+      {/* Main container */}
+      <div className="relative flex min-h-screen overflow-hidden">
+        
+        {/* Left Panel - Brand & Info */}
+        <div className={`w-80 flex-shrink-0 p-8 flex flex-col justify-center relative z-20 transition-all duration-1000 ${isLoaded ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0'}`}>
+          <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent backdrop-blur-sm border-r border-white/10"></div>
+          
+          <div className="relative z-10 space-y-8">
+            {/* Logo */}
+            <div className="flex items-center space-x-4">
+              <div className="text-3xl font-black bg-gradient-to-r from-white via-teal-200 to-blue-200 bg-clip-text text-transparent">
+                StartupSpotter
+              </div>
+              <div className="text-3xl animate-bounce">🚀</div>
+            </div>
+            
+            {/* Description */}
+            <div className="space-y-4">
+              <p className="text-white/80 leading-relaxed text-lg">
+                Discover small business ideas tailored to your strengths, passions, and local demand.
+              </p>
+              <p className="text-white/60 leading-relaxed">
+                Our AI tools and curated database make launching your next venture simpler than ever.
+              </p>
+            </div>
+            
+            {/* Feature indicators */}
+            <div className="space-y-4">
+              <div className="flex items-center space-x-3 text-white/70">
+                <div className="w-3 h-3 bg-teal-400 rounded-full animate-ping"></div>
+                <span className="text-sm font-medium">AI-Powered Market Analysis</span>
+              </div>
+              <div className="flex items-center space-x-3 text-white/70">
+                <div className="w-3 h-3 bg-blue-400 rounded-full animate-ping animate-delay-300"></div>
+                <span className="text-sm font-medium">Curated Startup Database</span>
+              </div>
+              <div className="flex items-center space-x-3 text-white/70">
+                <div className="w-3 h-3 bg-purple-400 rounded-full animate-ping animate-delay-500"></div>
+                <span className="text-sm font-medium">Local Opportunity Detection</span>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto space-y-4 px-4 pb-6">
-          {startups.map((startup) => (
-            <button
-              key={startup._id}
-              onClick={() => setSelected(startup)}
-              className={`w-full text-left rounded-xl p-4 bg-[#1B1B1B] text-[#D1E8E2] hover:bg-[#116466]/20 transition shadow ${
-                selected?._id === startup._id ? "ring-2 ring-[#116466]" : ""
-              }`}
-            >
-              <h2 className="text-lg font-semibold">{startup.name}</h2>
-              <p className="text-sm text-[#D1E8E2]/80">{startup.tags.join(", ")}</p>
-              <a
-                href={startup.website}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-[#FFCB9A] text-sm mt-1 inline-block hover:underline"
-              >
-                Visit Website
-              </a>
-            </button>
-          ))}
+        {/* Center Panel - AI Agent */}
+          <div className={`flex-1 flex items-center justify-center p-8 relative z-10 transition-all duration-1000 delay-300 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
+            
+          <div className="w-full max-w-3xl mx-auto">
+            <div className="bg-white/5 backdrop-blur-2xl border border-white/20 rounded-3xl p-12 hover:bg-white/10 transition-all duration-700 hover:scale-[1.02] hover:shadow-2xl hover:shadow-teal-500/20 group">
+              
+              {/* Header */}
+              <div className="text-center mb-10 space-y-6">
+                <div className="flex items-center justify-center space-x-4">
+                  <div className="text-5xl animate-spin-slow">🤖</div>
+                  <h2 className="text-5xl font-black bg-gradient-to-r from-teal-300 via-blue-300 to-purple-300 bg-clip-text text-transparent">
+                    AI Startup Agent
+                  </h2>
+                </div>
+                
+                <p className="text-xl text-white/80 leading-relaxed max-w-2xl mx-auto">
+                  Enter your startup vision and we'll help you create the perfect, most profitable business strategy.
+                </p>
+              </div>
+              
+              {/* Search Input */}
+              <div className="space-y-8">
+                <SearchBar placeholder="✨ Describe your startup idea and watch the magic unfold..." />
+                
+                {/* Action Buttons */}
+                <div className="flex justify-center space-x-6">
+                  <button className="px-8 py-4 bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-400 hover:to-teal-500 rounded-2xl font-bold transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-teal-500/25 flex items-center space-x-2">
+                    <span>🎯</span>
+                    <span>Analyze Market</span>
+                  </button>
+                  <button className="px-8 py-4 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 rounded-2xl font-bold transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/25 flex items-center space-x-2">
+                    <span>💡</span>
+                    <span>Generate Ideas</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-      </aside>
 
-      {/* Main Content */}
-      <main className="flex-1 flex items-center justify-center px-12">
-        {selected ? (
-          <div className="max-w-2xl bg-[#2C3531] text-[#D1E8E2] p-8 rounded-xl shadow-lg space-y-4">
-            <h2 className="text-3xl font-bold">{selected.name}</h2>
-            <p className="text-base">{selected.summary || "No description available."}</p>
-            <p className="text-sm text-[#FFCB9A]">Tags: {selected.tags.join(", ")}</p>
-            <a
-              href={selected.website}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-block mt-4 bg-[#116466] text-white px-6 py-2 rounded-lg hover:bg-[#0e4e4e] transition"
-            >
-              Visit Website
-            </a>
+        {/* Right Panel - Startup Discovery */}
+        <div className={`w-96 flex-shrink-0 p-6 space-y-6 overflow-y-auto relative z-20 transition-all duration-1000 delay-500 ${isLoaded ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'}`}>
+          <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent backdrop-blur-sm border-l border-white/10"></div>
+          
+          <div className="relative z-10 space-y-6">
+            {/* Header */}
+            <div className="text-center">
+              <div className="flex items-center justify-center space-x-3 mb-4">
+                <span className="text-2xl">🔍</span>
+                <h3 className="text-2xl font-bold text-white">Discover Startups</h3>
+              </div>
+              <SearchBar placeholder="Search amazing startups..." onSearch={setSearch} />
+            </div>
+            
+            {/* Results */}
+            <div className="space-y-4">
+              {filtered.length > 0 ? (
+                filtered.map((startup, index) => (
+                  <div
+                    key={startup._id}
+                    className="animate-slide-in"
+                    style={{
+                      animationDelay: `${index * 100}ms`,
+                      animationFillMode: 'both'
+                    }}
+                  >
+                    <ResultCard {...startup} />
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-16 space-y-4">
+                  <div className="text-6xl opacity-50">🌟</div>
+                  <div className="space-y-2">
+                    <p className="text-white/60 font-medium">Ready to explore?</p>
+                    <p className="text-white/40 text-sm">Start searching to discover incredible startups!</p>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
-        ) : (
-          <div className="text-center">
-            <h2 className="text-3xl font-bold mb-2">🚀 Discover Microbusiness Ideas</h2>
-            <p className="text-[#FFCB9A] text-lg max-w-xl">
-              Select a startup from the sidebar or search for an idea that fits your goals. We’ll help you explore next steps, startup costs, and more.
-            </p>
-          </div>
-        )}
-      </main>
+        </div>
+      </div>
+
+      {/* Custom styles */}
+      <style jsx>{`
+        @keyframes float {
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          33% { transform: translateY(-30px) rotate(1deg); }
+          66% { transform: translateY(-20px) rotate(-1deg); }
+        }
+        
+        @keyframes spin-slow {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        
+        @keyframes slide-in {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        
+        .animate-float {
+          animation: float 6s ease-in-out infinite;
+        }
+        
+        .animate-float-delay {
+          animation: float 8s ease-in-out infinite 2s;
+        }
+        
+        .animate-float-slow {
+          animation: float 10s ease-in-out infinite 4s;
+        }
+        
+        .animate-spin-slow {
+          animation: spin-slow 8s linear infinite;
+        }
+        
+        .animate-slide-in {
+          animation: slide-in 0.6s ease-out;
+        }
+        
+        .animate-delay-300 {
+          animation-delay: 300ms;
+        }
+        
+        .animate-delay-500 {
+          animation-delay: 500ms;
+        }
+        
+        .line-clamp-3 {
+          overflow: hidden;
+          display: -webkit-box;
+          -webkit-box-orient: vertical;
+          -webkit-line-clamp: 3;
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+          width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+          background: rgba(255, 255, 255, 0.05);
+          border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+          background: rgba(20, 184, 166, 0.3);
+          border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+          background: rgba(20, 184, 166, 0.5);
+        }
+      `}</style>
     </div>
   );
 };
