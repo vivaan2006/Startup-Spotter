@@ -1,28 +1,25 @@
-import React from 'react';
+import React from "react";
 
 interface ResultCardProps {
   name: string;
-  summary: string;
-  tags: string[];
+  summary?: string;
+  tags?: string[];
   website: string;
 }
 
-const ResultCard: React.FC<ResultCardProps> = ({
-  name,
-  summary,
-  tags,
-  website,
-}) => {
+const ResultCard: React.FC<ResultCardProps> = ({ name, summary, tags = [], website }) => {
   return (
-    <div className="p-6 rounded-2xl shadow-md bg-tan text-slate space-y-3">
-      <h2 className="text-2xl font-semibold text-teal">{name}</h2>
-      <p className="text-slate leading-relaxed">{summary}</p>
-      <p className="text-sm text-slate/70">Tags: {tags.join(', ')}</p>
+    <div className="p-4 rounded-xl shadow-md bg-[#1a1a1a] hover:shadow-lg transition-all border border-[#024950]/30">
+      <h2 className="text-lg font-semibold text-[#AFDDE5]">{name}</h2>
+      {summary && <p className="text-sm text-gray-400 mt-1">{summary}</p>}
+      {tags.length > 0 && (
+        <p className="text-xs text-[#0FA4AF] mt-1">Tags: {tags.join(", ")}</p>
+      )}
       <a
         href={website}
         target="_blank"
-        rel="noreferrer"
-        className="inline-block mt-2 px-4 py-2 rounded-lg font-medium bg-teal text-white hover:bg-teal/90 transition"
+        rel="noopener noreferrer"
+        className="inline-block mt-2 text-[#AFDDE5] text-sm underline hover:text-[#0FA4AF] transition"
       >
         Visit Website
       </a>

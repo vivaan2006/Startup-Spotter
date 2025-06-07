@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Search } from 'lucide-react';
+import React, { useState } from "react";
+import { Search } from "lucide-react";
 
 interface SearchBarProps {
   placeholder?: string;
@@ -7,30 +7,28 @@ interface SearchBarProps {
 }
 
 const SearchBar: React.FC<SearchBarProps> = ({
-  placeholder = 'Search startups…',
+  placeholder = "Search startups...",
   onSearch,
 }) => {
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState("");
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && onSearch) {
-      onSearch(query.trim());
+  const handleKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && onSearch) {
+      onSearch(query);
     }
   };
 
   return (
-    <div className="w-full max-w-xl mx-auto mb-6">
-      <div className="flex items-center bg-peach border border-tan rounded-2xl shadow-sm px-4 py-2 focus-within:ring-2 focus-within:ring-teal transition">
-        <Search className="w-5 h-5 text-slate/70 mr-2" />
-        <input
-          type="text"
-          value={query}
-          onChange={e => setQuery(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder={placeholder}
-          className="flex-1 bg-transparent focus:outline-none text-slate placeholder-slate/70"
-        />
-      </div>
+    <div className="relative w-full">
+      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#AFDDE5] opacity-60" size={18} />
+      <input
+        type="text"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        onKeyDown={handleKeyDown}
+        placeholder={placeholder}
+        className="w-full pl-10 pr-4 py-2 rounded-lg border border-[#0FA4AF] bg-[#003135] text-[#AFDDE5] placeholder-[#AFDDE5]/50 focus:outline-none focus:ring-2 focus:ring-[#0FA4AF] transition-all"
+      />
     </div>
   );
 };

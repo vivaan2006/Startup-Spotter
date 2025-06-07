@@ -1,14 +1,22 @@
-/** tailwind.config.js */
-export default {
-  content: ['./index.html','./src/**/*.{js,ts,jsx,tsx}'],
+
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
   theme: {
     extend: {
       colors: {
-        slate: '#2C3531',   // dark slate
-        teal:  '#116466',   // deep teal
-        tan:   '#D9B08C',   // warm tan
-        peach: '#FFCB9A',   // light peach
-        mint:  '#D1E8E2',   // pale mint
+      darkNavy: '#003135',
+      tealNavy: '#024950',
+      reddishBrown: '#964734',
+      cyan: '#0FA4AF',
+      lightBlue: '#AFDDE5',
+      white: 'FFFFFF'
+      },
+      fontFamily: {
+        sans: ["Inter", "sans-serif"],
       },
     },
   },

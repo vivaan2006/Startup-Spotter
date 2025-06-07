@@ -78,67 +78,77 @@ interface Startup {
 
 const Dashboard = () => {
   const [startups, setStartups] = useState<Startup[]>([]);
-  const [search, setSearch] = useState<string>("");
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  const [selected, setSelected] = useState<Startup | null>(null);
 
   useEffect(() => {
     fetch("/api/startups")
-      .then((res) => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return res.json();
-      })
-      .then((data: Startup[]) => {
-        setStartups(data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error("❌ Failed to fetch startups:", err);
-        setError("Failed to load startups.");
-        setLoading(false);
-      });
+      .then((res) => res.json())
+      .then(setStartups)
+      .catch((err) => console.error("❌ Failed to fetch startups:", err));
   }, []);
 
-  const filtered = startups.filter((s) =>
-    s.name.toLowerCase().includes(search.toLowerCase())
-  );
-
   return (
-    <div className="flex h-screen font-sans bg-[#121212] text-[#D1E8E2]">
+    <div className="flex h-screen bg-[#1B1B1B] text-[#D1E8E2] font-sans">
       {/* Sidebar */}
-      <aside className="w-96 bg-[#2C3531] text-white p-6 overflow-y-auto">
-        <h1 className="text-4xl font-bold mb-6 flex items-center justify-between">
-          StartupSpotter <span>🚀</span>
-        </h1>
+      <aside className="w-96 bg-[#2C3531] border-r border-gray-700 flex flex-col">
+        <header className="p-6">
+          <h1 className="text-3xl font-bold text-white flex items-center justify-between">
+            StartupSpotter <span className="text-2xl">🚀</span>
+          </h1>
+        </header>
 
-        <SearchBar
-          placeholder="Search startups..."
-          onSearch={(q: string) => setSearch(q)}
-        />
+        <div className="px-4 pb-4">
+          <SearchBar placeholder="Search startups..." />
+        </div>
 
-        {loading && <p className="text-[#116466] mt-4">Loading startups...</p>}
-        {error && <p className="text-[#FFCB9A] mt-4">Error: {error}</p>}
-
-        <div className="space-y-4 mt-6">
-          {filtered.map((s) => (
-            <ResultCard
-              key={s._id}
-              name={s.name}
-              summary={s.summary}
-              tags={s.tags}
-              website={s.website}
-            />
+        <div className="flex-1 overflow-y-auto space-y-4 px-4 pb-6">
+          {startups.map((startup) => (
+            <button
+              key={startup._id}
+              onClick={() => setSelected(startup)}
+              className={`w-full text-left rounded-xl p-4 bg-[#1B1B1B] text-[#D1E8E2] hover:bg-[#116466]/20 transition shadow ${
+                selected?._id === startup._id ? "ring-2 ring-[#116466]" : ""
+              }`}
+            >
+              <h2 className="text-lg font-semibold">{startup.name}</h2>
+              <p className="text-sm text-[#D1E8E2]/80">{startup.tags.join(", ")}</p>
+              <a
+                href={startup.website}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[#FFCB9A] text-sm mt-1 inline-block hover:underline"
+              >
+                Visit Website
+              </a>
+            </button>
           ))}
         </div>
       </aside>
 
-      {/* Right Panel */}
-      <main className="flex-1 flex flex-col items-center justify-center text-[#D1E8E2] px-12">
-        <h2 className="text-4xl font-bold mb-4">🚀 Discover Microbusiness Ideas</h2>
-        <p className="text-lg text-[#FFCB9A] max-w-xl text-center">
-          Select a startup from the sidebar or search for an idea that fits your goals. We’ll help you
-          explore next steps, startup costs, and more.
-        </p>
+      {/* Main Content */}
+      <main className="flex-1 flex items-center justify-center px-12">
+        {selected ? (
+          <div className="max-w-2xl bg-[#2C3531] text-[#D1E8E2] p-8 rounded-xl shadow-lg space-y-4">
+            <h2 className="text-3xl font-bold">{selected.name}</h2>
+            <p className="text-base">{selected.summary || "No description available."}</p>
+            <p className="text-sm text-[#FFCB9A]">Tags: {selected.tags.join(", ")}</p>
+            <a
+              href={selected.website}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block mt-4 bg-[#116466] text-white px-6 py-2 rounded-lg hover:bg-[#0e4e4e] transition"
+            >
+              Visit Website
+            </a>
+          </div>
+        ) : (
+          <div className="text-center">
+            <h2 className="text-3xl font-bold mb-2">🚀 Discover Microbusiness Ideas</h2>
+            <p className="text-[#FFCB9A] text-lg max-w-xl">
+              Select a startup from the sidebar or search for an idea that fits your goals. We’ll help you explore next steps, startup costs, and more.
+            </p>
+          </div>
+        )}
       </main>
     </div>
   );
