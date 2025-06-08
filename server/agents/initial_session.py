@@ -37,7 +37,7 @@ async def main():
     )
 
     new_message = types.Content(
-        role="user", parts=[types.Part(text="Get my current startup idea.")]
+        role="user", parts=[types.Part(text="$15,000 in Queens, NYC")]
     )
 
     for event in runner.run(

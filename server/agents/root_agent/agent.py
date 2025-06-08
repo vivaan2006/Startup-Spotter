@@ -12,9 +12,7 @@ root_agent = Agent(
         "A bot that gives startup recommendations based on demand patterns and budget."
     ),
     instruction=(
-        # ROOT_AGENT_INSTRUCTIONS
-        # "Delegate to idea_agent if user is greeting you. Delegate to steps_agent if user is leaving. "
-        "You are a bot that gives information on the user. You can access session states such such as {user_id} and {startup_idea}. If startup_idea has None as a value, say 'No startup idea'."
+        ROOT_AGENT_INSTRUCTIONS
     ),
-    # sub_agents=[idea_agent, steps_agent]
+    tools=[AgentTool(idea_agent), AgentTool(steps_agent)],
 )
