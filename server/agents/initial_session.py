@@ -16,7 +16,10 @@ SESSION_ID = str(uuid.uuid4())
 
 initial_state = {
     "user_id": USER_ID,
+    "budget": None,
+    "location": None,
     "idea": None,
+    "interests": [],
     "steps": None
 }
 
@@ -38,7 +41,7 @@ async def main():
     )
 
     new_message = types.Content(
-        role="user", parts=[types.Part(text="$15,000 in Queens, NYC")]
+        role="user", parts=[types.Part(text="I have a budget of $15,000 and I want to start a business in Queens, NYC")]
     )
 
     for event in runner.run(
