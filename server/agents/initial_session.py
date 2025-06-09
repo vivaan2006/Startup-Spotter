@@ -10,14 +10,15 @@ load_dotenv()
 
 session_service_stateful = InMemorySessionService()
 
-initial_state = {
-    "user_id":"Kyle",
-    "startup_idea": None
-}
-
-APP_NAME = "Kyle Bot"
+APP_NAME = "StartupSpotter"
 USER_ID = "Kyle_Law"
 SESSION_ID = str(uuid.uuid4())
+
+initial_state = {
+    "user_id": USER_ID,
+    "idea": None,
+    "steps": None
+}
 
 async def main():
 
