@@ -8,7 +8,7 @@ import asyncio
 
 load_dotenv()
 
-session_service_stateful = InMemorySessionService()
+session_service_stateful = InMemorySessionService() # will need to replace with vertex ai session service
 
 initial_state = {
     "user_id":"Kyle",
@@ -37,7 +37,7 @@ async def main():
     )
 
     new_message = types.Content(
-        role="user", parts=[types.Part(text="Get my current startup idea.")]
+        role="user", parts=[types.Part(text="Get my current startup idea.")] # replace the text with soemthing the user enters.
     )
 
     for event in runner.run(
