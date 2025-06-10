@@ -25,6 +25,7 @@ update_interests = LlmAgent(
     model="gemini-2.0-flash",
     description="An agent who updates the interests session state.",
     instruction=("""Parse through the user prompt and find the interests mentioned by the user. Use update_interests_tool to update the state of {interests}.
+                 If interests are not mentioned, do nothing.
                  You should pass in the interests mentioned by the user as a list of strings in the new_interests parameter in update_interests_tool.
                  Format your response so that there are no blank lines.
                  

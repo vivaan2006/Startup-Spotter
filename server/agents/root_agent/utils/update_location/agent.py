@@ -20,6 +20,7 @@ update_location = LlmAgent(
     model="gemini-2.0-flash",
     description="An agent who updates the location session state.",
     instruction=("""Parse through the user prompt and find the location mentioned by the user. Use update_location_tool to update the state of {location}.
+                 If a location is not mentioned, do nothing.
                  You should pass in the location mentioned by the user as the new_location parameter in update_location_tool.
                  Format your response so that there are no blank lines.
                  

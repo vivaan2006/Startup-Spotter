@@ -2,7 +2,7 @@ import uuid
 
 SESSION_ID = str(uuid.uuid4())
 
-# To be changed to GET requests later
+# To be changed to GET requests from memory later
 APP_NAME = "StartupSpotter"
 USER_ID = "Kyle_Law"
 
@@ -11,7 +11,7 @@ state = {
     "user_id": USER_ID,
     "budget": None,
     "location": None,
-    "idea": None,
+    "idea": ["Idea", "Idea Description"],
     "interests": [],
-    "steps": None
+    "steps": ["Step Number", "Step name", "Step Description"]
 }
