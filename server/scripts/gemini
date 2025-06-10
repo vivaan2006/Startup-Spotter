@@ -1,0 +1,12 @@
+import google.generativeai as genai
+from server.scripts.model.embedder import Embedder
+
+genai.configure(api_key="AIzaSyDJh-eZUk_vMqbYvcbZRk0wQ49IEvZ5iXM")
+
+class GeminiEmbedder(Embedder):
+    def __init__(self):
+        self.model = genai.GenerativeModel("embedding-001")
+
+    def embed(self, text: str) -> list[float]:
+        res = self.model.embed_content(content=text, task_type="RETRIEVAL_DOCUMENT")
+        return res["embedding"]
