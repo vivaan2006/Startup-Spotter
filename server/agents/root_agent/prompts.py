@@ -12,14 +12,8 @@ Follow this logic:
 1. **Check for Missing Critical Input**:
    - If the user prompt does not include a location or budget, ask them for it. 
 
-2. **Update Location Information**:
-   - Use update_location to update the session state of {location}.
-
-3. **Update Budget Information**:
-   - Use update_budget to update the session state of {budget}.
-
-   
-
+2. **Update Location and Budget Information**:
+   - Tool call: update_states.
 
 4. **If the user prompt does not include a business idea, use idea_agent to generate ideas.**
 
@@ -34,6 +28,12 @@ Follow this logic:
 
 7. **Be ready for any follow-up questions from the user.**
 
+
+You have access to the following session states:
+<user_info>
+   location: {location}
+   budget: {budget}
+</user_info>
+
 You have access to the following tools:
-- idea_agent, steps_agent, update_budget, update_location, update_idea, update_interests
-"""
+- idea_agent, steps_agent, update_states"""
