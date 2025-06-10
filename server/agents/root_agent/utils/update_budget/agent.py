@@ -8,6 +8,7 @@ def update_budget_tool(tool_context: ToolContext, new_budget: str) -> dict:
     print("=== UPDATE_BUDGET CALLED ===")
     print("Previous budget:", tool_context.state.get("budget"))
     print("New budget:", new_budget)
+    
     tool_context.state['budget'] = new_budget
     return {
         "status" : "success",

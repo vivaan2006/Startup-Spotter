@@ -6,16 +6,13 @@ from google.genai import types
 from root_agent import root_agent
 import asyncio
 from state import APP_NAME, USER_ID, SESSION_ID, state
-from google.adk.events import Event, EventActions
 
 
 load_dotenv()
-
 session_service_stateful = InMemorySessionService()
 
 
 async def main():
-
     stateful_sesion = await session_service_stateful.create_session(
         app_name=APP_NAME,
         user_id=USER_ID,
@@ -33,7 +30,7 @@ async def main():
 
 
     new_message = types.Content(
-        role="user", parts=[types.Part(text="I have a budget of $15,000 and I want to start a business in Queens, NYC")]
+        role="user", parts=[types.Part(text="I have a budget of $15,000 and I want to start a business in Queens, NYC. I am interested in finance, coding, and teaching.")]
     )
 
     for event in runner.run(
