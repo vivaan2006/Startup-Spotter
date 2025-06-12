@@ -9,7 +9,6 @@ from state import APP_NAME, USER_ID, SESSION_ID, state
 
 
 load_dotenv()
-session_service_stateful = InMemorySessionService()
 
 session_service_stateful = InMemorySessionService() # will need to replace with vertex ai session service
 

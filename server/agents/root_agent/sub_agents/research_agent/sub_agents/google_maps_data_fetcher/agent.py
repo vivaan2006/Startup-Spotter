@@ -3,9 +3,7 @@ from google.adk.tools.mcp_tool.mcp_toolset import MCPToolset
 from mcp.client.stdio import StdioServerParameters
 import os
 from dotenv import load_dotenv
-from .prompts import RESEARCH_AGENT_INSTRUCTIONS
-from google.adk.tools.agent_tool import AgentTool
-from .sub_agents.google_maps_data_fetcher.agent import google_maps_data_fetcher
+from .prompts import GOOGLE_MAPS_DATA_FETCHER_INSTRUCTIONS
 
 load_dotenv()
 
@@ -15,15 +13,22 @@ client_id = os.getenv("MDB_MCP_API_CLIENT_ID")
 secret_key = os.getenv("MDB_MCP_API_CLIENT_SECRET")
 google_maps_api_key = os.getenv("GOOGLE_MAPS_API_KEY", "")
 
-research_agent = Agent(
-    name="research_agent",
+google_maps_data_fetcher = Agent(
+    name="google_maps_data_fetcher",
     model="gemini-2.0-flash",
     description=(
-        "A bot that determines the demand pattern of a location by researching existing businesses, the demographics, and previous demand patterns in a given location."
+        "A bot that provides information about businesses in a given location using Google Maps."
     ),
-    instruction=RESEARCH_AGENT_INSTRUCTIONS,
+    instruction=GOOGLE_MAPS_DATA_FETCHER_INSTRUCTIONS,
     tools=[
-        AgentTool(google_maps_data_fetcher),
+        MCPToolset(
+            connection_params=StdioServerParameters(
+                command='npx',
+                args=["-y", "@modelcontextprotocol/server-google-maps"],
+                env={"GOOGLE_MAPS_API_KEY": google_maps_api_key},
+
+            )
+        ),
         # MCPToolset(
         #     connection_params=StdioServerParameters(
         #         command="npx",
@@ -37,9 +42,7 @@ research_agent = Agent(
         #             ]
         #         )
         # )
-    ],
-    
-    output_key="data"
+    ]
 )
 
 if __name__ == "__main__":

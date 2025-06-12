@@ -1,6 +1,7 @@
 from google.adk.agents import LlmAgent
-from google.adk.tools import google_search
 from .prompts import STARTUP_IDEA_AGENT_INSTRUCTIONS
+from .update_idea import update_idea
+from google.adk.tools.agent_tool import AgentTool
 
 idea_agent = LlmAgent(
     name="idea_agent",
@@ -11,5 +12,5 @@ idea_agent = LlmAgent(
     instruction=(
         STARTUP_IDEA_AGENT_INSTRUCTIONS
     ),
-    tools=[google_search]
+    tools=[AgentTool(update_idea)]
 )

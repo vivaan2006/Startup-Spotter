@@ -13,5 +13,6 @@ state = {
     "location": None,
     "idea": ["Idea", "Idea Description"],
     "interests": [],
-    "steps": ["Step Number", "Step name", "Step Description"]
+    "steps": ["Step Number", "Step name", "Step Description"],
+    "data": None
 }
