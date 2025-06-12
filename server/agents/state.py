@@ -1,4 +1,7 @@
 import uuid
+from google.adk.sessions import InMemorySessionService # will eventually need to either use database or vertexai to store sessions in memory
+from google.adk.runners import Runner
+from root_agent import root_agent
 
 SESSION_ID = str(uuid.uuid4())
 
@@ -16,3 +19,10 @@ state = {
     "steps": ["Step Number", "Step name", "Step Description"],
     "data": None
 }
+
+session_service_stateful = InMemorySessionService()
+runner = Runner(
+    agent=root_agent,
+    app_name=APP_NAME,
+    session_service=session_service_stateful
+)
