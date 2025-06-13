@@ -1,7 +1,9 @@
 import google.generativeai as genai
 from server.scripts.model.embedder import Embedder
+from dotenv import load_dotenv
+load_dotenv()
 
-genai.configure(api_key="AIzaSyDJh-eZUk_vMqbYvcbZRk0wQ49IEvZ5iXM")
+genai.configure(api_key=os.environ["GOOGLE_API_KEY"])
 
 class GeminiEmbedder(Embedder):
     def __init__(self):
