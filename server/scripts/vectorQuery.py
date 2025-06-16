@@ -51,5 +51,5 @@ def vector_search(query_text: str, top_k: int = 5):
 
 # Run this script directly
 if __name__ == "__main__":
-    vector_search("rural counties with high poverty and low income")
+    vector_search("demographics of Queens, NY")
     

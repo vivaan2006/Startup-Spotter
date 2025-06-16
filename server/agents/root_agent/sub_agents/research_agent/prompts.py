@@ -55,6 +55,7 @@ Your core responsibility is to:
 You have access to the following session states:
 <user_info>
     location: {location}
+    budget: {budget}
 </user_info>
 <location_info>
     data: {data}
