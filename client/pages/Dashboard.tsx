@@ -91,6 +91,9 @@ const Dashboard: React.FC = () => {
   const [agentResponse, setAgentResponse] = useState<string>("");
   const [sessionId, setSessionId] = useState<string | null>(null);
 
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+
+
   useEffect(() => {
     // Simulate loading animation
     setTimeout(() => setIsLoaded(true), 500);
@@ -109,67 +112,34 @@ fetch("/api/start_session", {
 
   }, []);
 
-const handleAgentRequest = async (mode: "analyze" | "generate") => {
+const handleAgentRequest = async () => {
   if (!sessionId) return alert("❌ No session ID. Try refreshing.");
+
+  setIsLoading(true); // Show loading screen
+  setAgentResponse(""); // Clear previous response
 
   try {
     const res = await fetch("/api/run_agent", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-body: JSON.stringify({
-  session_id: sessionId,
-  user_input:
-    mode === "generate"
-      ? `Give me a JSON array of 5 startup ideas. Each idea must include: name, summary, tags (array), and website (optional). Format the entire response as pure JSON only. ${
-          search ? "Focus on: " + search : ""
-        }`
-: search || "Give me a startup idea to analyze.",
-}),
-
+      body: JSON.stringify({
+        session_id: sessionId,
+        user_input: search || "Give me a startup idea to analyze.",
+      }),
     });
 
     const data = await res.json();
-
-    if (mode === "analyze") {
+    setTimeout(() => {
       setAgentResponse(data.response);
-    } else if (mode === "generate") {
-      // Attempt to parse startup ideas if returned as JSON
-try {
-  const ideas = JSON.parse(data.response);
-
-  // Validate it’s an array of objects with a name and summary
-  if (Array.isArray(ideas) && ideas.every((idea) => idea.name && idea.summary)) {
-    setStartups(
-      ideas.map((idea, idx) => ({
-        _id: `${idx}`,
-        name: idea.name,
-        summary: idea.summary,
-        tags: idea.tags || [],
-        website: idea.website || "",
-      }))
-    );
-  } else {
-    throw new Error("Invalid JSON structure");
-  }
-} catch {
-  // fallback: split lines and show basic cards
-  const lines = data.response.split("\n").filter((line: string) => line.trim() !== "");
-  const parsed = lines.map((line: string, idx: number): Startup => ({
-    _id: `${idx}`,
-    name: line.slice(0, 30),
-    summary: line,
-    tags: [],
-    website: "",
-  }));
-  setStartups(parsed);
-}
-
-    }
+      setIsLoading(false);
+    }, 1800); // artificial delay for visual polish
   } catch (err) {
     console.error("❌ Agent error:", err);
     alert("Failed to reach agent.");
+    setIsLoading(false);
   }
 };
+
 
 
   const filtered = startups.filter((s) =>
@@ -258,34 +228,33 @@ try {
   onSearch={setSearch}
 />
 
-                {agentResponse && (
-  <div className="bg-white/10 text-white p-6 rounded-xl border border-teal-500/20 shadow-md mt-6">
-    <h4 className="text-lg font-bold mb-2 text-teal-300">📬 Agent Response</h4>
-    <p className="whitespace-pre-line leading-relaxed text-white/80">{agentResponse}</p>
+{isLoading ? (
+  <div className="flex flex-col items-center justify-center mt-6 space-y-4">
+    <div className="w-12 h-12 border-4 border-teal-400 border-t-transparent rounded-full animate-spin"></div>
+    <p className="text-white/70 text-sm">Analyzing your idea… hang tight ✨</p>
   </div>
+) : (
+  agentResponse && (
+    <div className="bg-white/10 text-white p-6 rounded-xl border border-teal-500/20 shadow-md mt-6">
+      <h4 className="text-lg font-bold mb-2 text-teal-300">📬 Agent Response</h4>
+      <p className="whitespace-pre-line leading-relaxed text-white/80">{agentResponse}</p>
+    </div>
+  )
 )}
+
 
                 
                 {/* Action Buttons */}
-                <div className="flex justify-center space-x-6">
-<button
-  onClick={() => handleAgentRequest("analyze")}
-  className="px-8 py-4 bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-400 hover:to-teal-500 rounded-2xl font-bold transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-teal-500/25 flex items-center space-x-2"
->
-  <span>🎯</span>
-  <span>Analyze Market</span>
-</button>
+<div className="flex justify-center">
+  <button
+    onClick={handleAgentRequest}
+    className="px-8 py-4 bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-400 hover:to-teal-500 rounded-2xl font-bold transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-teal-500/25 flex items-center space-x-2"
+  >
+    <span>🚀</span>
+    <span>Enter</span>
+  </button>
+</div>
 
-<button
-  onClick={() => handleAgentRequest("generate")}
-  className="px-8 py-4 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 rounded-2xl font-bold transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/25 flex items-center space-x-2"
->
-  <span>💡</span>
-  <span>Generate Ideas</span>
-</button>
-
-
-                </div>
               </div>
             </div>
           </div>
