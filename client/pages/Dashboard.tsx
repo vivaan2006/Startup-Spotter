@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 
+const API_BASE_URL = import.meta.env.VITE_API_URL;
+
 // Proper TypeScript interfaces
 interface SearchBarProps {
   placeholder?: string;
@@ -95,7 +97,7 @@ const Dashboard: React.FC = () => {
     // Simulate loading animation
     setTimeout(() => setIsLoaded(true), 500);
     
-fetch("/api/start_session", {
+fetch(`${API_BASE_URL}/api/start_session`, {
   method: "POST",
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify({ user_id: "vivaan" })
@@ -113,7 +115,7 @@ const handleAgentRequest = async (mode: "analyze" | "generate") => {
   if (!sessionId) return alert("❌ No session ID. Try refreshing.");
 
   try {
-    const res = await fetch("/api/run_agent", {
+    const res = await fetch(`${API_BASE_URL}/api/run_agent`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
 body: JSON.stringify({

@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-genai.configure(api_key=os.environ["GOOGLE_API_KEY"]) # type: ignore
+genai.configure(api_key=os.environ["GOOGLE_API_KEY"])  # type: ignore
 
 class GeminiEmbedder:
     def embed(self, text: str) -> list[float]:

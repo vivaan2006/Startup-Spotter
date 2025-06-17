@@ -25,7 +25,7 @@ mongoose.connect(process.env.MONGO_URI || '', {})
 app.use("/api/startup", startupRoutes);
 app.use("/api/search", searchRoutes);
 
-const AGENT_SERVER_URL = 'http://127.0.0.1:8000';
+const AGENT_SERVER_URL = process.env.AGENT_CLOUD_SERVER_URL || process.env.LOCAL_AGENT_SERVER_URL || 'http://127.0.0.1:8000';
 
 
 app.post("/api/start_session", async (req, res) => {
