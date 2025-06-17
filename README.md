@@ -108,10 +108,21 @@ curl -X POST http://localhost:3000/api/search      -H "Content-Type: application
 ## 💡 Features
 
 - Multi-agent reasoning via Google ADK
+- Retrieval-Augmented Generation Agents capable of performing Vector Search of MongoDB Atlas Databases and Google Search
 - Full MongoDB persistence of startup data
 - Custom user session management
 - Clean API bridge (Axios from frontend → backend → Python)
 - Modular and scalable agent architecture
+
+---
+
+## Upcoming Features
+
+- **Session Memory**: Persist session context across user interactions to enhance continuity and personalization.
+- **Competitor Analysis via Google Maps MCP**: Integrate geospatial intelligence to analyze local competition based on startup type and location.
+- **Foot Traffic Data Analysis**: Recommend more specific locations for startups based on hotspots.
+- **Startup Evaluator Agent**: Introduce an agent to assess feasibility, risks, and ROI of proposed microbusiness ideas.
+- **Steps Assistant**: Deploy a follow-up agent to help users take actionable steps toward launching their selected startup.
 
 ---
 
