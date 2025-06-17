@@ -88,15 +88,48 @@ const Dashboard: React.FC = () => {
   const [search, setSearch] = useState<string>("");
   const [isLoaded, setIsLoaded] = useState<boolean>(false);
 
+  const [agentResponse, setAgentResponse] = useState<string>("");
+  const [sessionId, setSessionId] = useState<string | null>(null);
+
   useEffect(() => {
     // Simulate loading animation
     setTimeout(() => setIsLoaded(true), 500);
     
-    fetch("/api/startups")
-      .then((res) => res.json())
-      .then((data: Startup[]) => setStartups(data))
-      .catch((err) => console.error("❌ Failed to fetch startups:", err));
+fetch("/api/start_session", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ user_id: "vivaan" })
+})
+  .then((res) => res.json())
+  .then((data) => {
+    console.log("✅ Got session:", data);
+    setSessionId(data.session_id);
+  })
+  .catch((err) => console.error("❌ Failed to start session:", err));
+
   }, []);
+
+  const handleAgentRequest = async () => {
+  if (!sessionId) return alert("❌ No session ID. Try refreshing.");
+
+  try {
+    const res = await fetch("/api/run_agent", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        session_id: sessionId,
+        user_input: search || "Give me a business idea",
+      }),
+    });
+
+    const data = await res.json();
+    setAgentResponse(data.response);
+  } catch (err) {
+    console.error("❌ Agent error:", err);
+    alert("Failed to reach agent.");
+  }
+};
+
 
   const filtered = startups.filter((s) =>
     s.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -180,13 +213,26 @@ const Dashboard: React.FC = () => {
               {/* Search Input */}
               <div className="space-y-8">
                 <SearchBar placeholder="✨ Describe your startup idea and watch the magic unfold..." />
+
+                {agentResponse && (
+  <div className="bg-white/10 text-white p-6 rounded-xl border border-teal-500/20 shadow-md mt-6">
+    <h4 className="text-lg font-bold mb-2 text-teal-300">📬 Agent Response</h4>
+    <p className="whitespace-pre-line leading-relaxed text-white/80">{agentResponse}</p>
+  </div>
+)}
+
                 
                 {/* Action Buttons */}
                 <div className="flex justify-center space-x-6">
-                  <button className="px-8 py-4 bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-400 hover:to-teal-500 rounded-2xl font-bold transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-teal-500/25 flex items-center space-x-2">
-                    <span>🎯</span>
-                    <span>Analyze Market</span>
-                  </button>
+<button
+  onClick={handleAgentRequest}
+  className="px-8 py-4 bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-400 hover:to-teal-500 rounded-2xl font-bold transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-teal-500/25 flex items-center space-x-2"
+>
+  <span>🎯</span>
+  <span>Analyze Market</span>
+</button>
+
+                  
                   <button className="px-8 py-4 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 rounded-2xl font-bold transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/25 flex items-center space-x-2">
                     <span>💡</span>
                     <span>Generate Ideas</span>
