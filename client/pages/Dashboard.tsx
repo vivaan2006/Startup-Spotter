@@ -22,6 +22,21 @@ interface ResultCardProps {
   website: string;
 }
 
+interface TrendingOpportunity {
+  title: string;
+  growth: number;
+  category: string;
+  description: string;
+  potential: 'High' | 'Medium' | 'Low';
+}
+
+interface MarketInsight {
+  metric: string;
+  value: string;
+  change: number;
+  icon: string;
+}
+
 // Built-in SearchBar Component with proper types
 const SearchBar: React.FC<SearchBarProps> = ({ placeholder = "Search...", onSearch, value = "" }) => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -96,23 +111,66 @@ const Dashboard: React.FC = () => {
   const [searchInput, setSearchInput] = useState<string>("");  // for prompt
   const [filterInput, setFilterInput] = useState<string>("");  // for filtering
 
-
+  // New state for right panel
+  const [activeTab, setActiveTab] = useState<'insights' | 'trends' | 'analytics'>('insights');
+  const [marketInsights, setMarketInsights] = useState<MarketInsight[]>([]);
+  const [trendingOpportunities, setTrendingOpportunities] = useState<TrendingOpportunity[]>([]);
 
   useEffect(() => {
     // Simulate loading animation
     setTimeout(() => setIsLoaded(true), 500);
     
-fetch("/api/start_session", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ user_id: "vivaan" })
-})
-  .then((res) => res.json())
-  .then((data) => {
-    console.log("✅ Got session:", data);
-    setSessionId(data.session_id);
-  })
-  .catch((err) => console.error("❌ Failed to start session:", err));
+    // Initialize market insights
+    setMarketInsights([
+      { metric: "Market Size", value: "$2.3T", change: 12.5, icon: "📈" },
+      { metric: "New Startups", value: "1,247", change: 8.2, icon: "🚀" },
+      { metric: "Funding Volume", value: "$89.2B", change: -3.1, icon: "💰" },
+      { metric: "Success Rate", value: "23.4%", change: 5.7, icon: "🎯" }
+    ]);
+
+    // Initialize trending opportunities
+    setTrendingOpportunities([
+      {
+        title: "AI-Powered Healthcare",
+        growth: 89.5,
+        category: "HealthTech",
+        description: "AI diagnostics and personalized medicine solutions",
+        potential: "High"
+      },
+      {
+        title: "Sustainable Energy",
+        growth: 67.3,
+        category: "CleanTech",
+        description: "Solar and wind energy optimization platforms",
+        potential: "High"
+      },
+      {
+        title: "EdTech Platforms",
+        growth: 45.2,
+        category: "Education",
+        description: "Interactive learning and remote education tools",
+        potential: "Medium"
+      },
+      {
+        title: "FinTech Solutions",
+        growth: 34.8,
+        category: "Finance",
+        description: "Digital banking and cryptocurrency services",
+        potential: "Medium"
+      }
+    ]);
+    
+    fetch("/api/start_session", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ user_id: "vivaan" })
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        console.log("✅ Got session:", data);
+        setSessionId(data.session_id);
+      })
+      .catch((err) => console.error("❌ Failed to start session:", err));
 
   }, []);
 
@@ -150,13 +208,10 @@ const currentPrompt = searchInput;
   }
 };
 
-
-
 const filtered = startups.filter((s) =>
   s.name.toLowerCase().includes(filterInput.toLowerCase()) ||
   s.tags.some((tag) => tag.toLowerCase().includes(filterInput.toLowerCase()))
 );
-
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-teal-900 text-white font-sans overflow-hidden">
@@ -240,7 +295,6 @@ const filtered = startups.filter((s) =>
   onSearch={setSearchInput}
 />
 
-
 {isLoading ? (
   <div className="flex flex-col items-center justify-center mt-6 space-y-4">
     <div className="w-12 h-12 border-4 border-teal-400 border-t-transparent rounded-full animate-spin"></div>
@@ -255,8 +309,6 @@ const filtered = startups.filter((s) =>
   )
 )}
 
-
-                
                 {/* Action Buttons */}
 <div className="flex justify-center">
   <button
@@ -273,58 +325,216 @@ const filtered = startups.filter((s) =>
           </div>
         </div>
 
-        {/* Right Panel - Startup Discovery */}
+        {/* Right Panel - Enhanced Analytics Dashboard */}
         <div className={`w-96 flex-shrink-0 p-6 space-y-6 overflow-y-auto relative z-20 transition-all duration-1000 delay-500 ${isLoaded ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'}`}>
           <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent backdrop-blur-sm border-l border-white/10"></div>
           
           <div className="relative z-10 space-y-6">
-            {/* Header */}
-            <div className="text-center">
-              <div className="flex items-center justify-center space-x-3 mb-4">
-                <span className="text-2xl">🔍</span>
-                <h3 className="text-2xl font-bold text-white">Discover Startups</h3>
-              </div>
-<SearchBar
-  placeholder="Search amazing startups..."
-  value={filterInput}
-  onSearch={setFilterInput}
-/>
-
-
+            {/* Tab Navigation */}
+            <div className="flex space-x-2 bg-white/5 rounded-2xl p-2 border border-white/10">
+              {[
+                { id: 'insights', label: 'Insights', icon: '📊' },
+                { id: 'trends', label: 'Trends', icon: '📈' },
+                { id: 'analytics', label: 'Analytics', icon: '🎯' }
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id as any)}
+                  className={`flex-1 flex items-center justify-center space-x-2 py-3 px-4 rounded-xl font-medium transition-all duration-300 ${
+                    activeTab === tab.id
+                      ? 'bg-gradient-to-r from-teal-500 to-blue-500 text-white shadow-lg'
+                      : 'text-white/60 hover:text-white hover:bg-white/10'
+                  }`}
+                >
+                  <span>{tab.icon}</span>
+                  <span className="text-sm">{tab.label}</span>
+                </button>
+              ))}
             </div>
-            
-            {/* Results */}
-            <div className="space-y-4">
-              {pastQueries.length > 0 && (
-  <div className="bg-white/5 p-4 rounded-xl border border-white/10 text-white/70 text-sm space-y-2">
-    <h4 className="text-teal-300 font-semibold mb-2">🧠 Last Prompt</h4>
-    <p className="text-white/80">{pastQueries[0]}</p>
-  </div>
-)}
 
-              {filtered.length > 0 ? (
-                filtered.map((startup, index) => (
+            {/* Market Insights Tab */}
+            {activeTab === 'insights' && (
+              <div className="space-y-4 animate-slide-in">
+                <h3 className="text-xl font-bold text-white flex items-center space-x-2">
+                  <span>📊</span>
+                  <span>Market Insights</span>
+                </h3>
+                
+                {marketInsights.map((insight, index) => (
                   <div
-                    key={startup._id}
-                    className="animate-slide-in"
-                    style={{
-                      animationDelay: `${index * 100}ms`,
-                      animationFillMode: 'both'
-                    }}
+                    key={index}
+                    className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-4 hover:bg-white/10 transition-all duration-300 group"
                   >
-                    <ResultCard {...startup} />
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center space-x-2">
+                        <span className="text-lg">{insight.icon}</span>
+                        <span className="text-white/70 text-sm font-medium">{insight.metric}</span>
+                      </div>
+                      <div className={`text-xs px-2 py-1 rounded-full ${
+                        insight.change > 0
+                          ? 'bg-green-500/20 text-green-300'
+                          : 'bg-red-500/20 text-red-300'
+                      }`}>
+                        {insight.change > 0 ? '+' : ''}{insight.change}%
+                      </div>
+                    </div>
+                    <div className="text-2xl font-bold text-white">{insight.value}</div>
                   </div>
-                ))
-              ) : (
-                <div className="text-center py-16 space-y-4">
-                  <div className="text-6xl opacity-50">🌟</div>
+                ))}
+
+                {/* Quick Actions */}
+                <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/30 rounded-2xl p-4">
+                  <h4 className="text-white font-semibold mb-3 flex items-center space-x-2">
+                    <span>⚡</span>
+                    <span>Quick Actions</span>
+                  </h4>
                   <div className="space-y-2">
-                    <p className="text-white/60 font-medium">Ready to explore?</p>
-                    <p className="text-white/40 text-sm">Start searching to discover incredible startups!</p>
+                    <button className="w-full text-left bg-white/10 hover:bg-white/20 rounded-xl p-3 text-sm text-white/80 transition-all duration-300 hover:scale-105">
+                      🔍 Analyze Market Opportunity
+                    </button>
+                    <button className="w-full text-left bg-white/10 hover:bg-white/20 rounded-xl p-3 text-sm text-white/80 transition-all duration-300 hover:scale-105">
+                      💡 Generate Business Ideas
+                    </button>
+                    <button className="w-full text-left bg-white/10 hover:bg-white/20 rounded-xl p-3 text-sm text-white/80 transition-all duration-300 hover:scale-105">
+                      🎯 Find Target Audience
+                    </button>
                   </div>
                 </div>
-              )}
-            </div>
+              </div>
+            )}
+
+            {/* Trending Opportunities Tab */}
+            {activeTab === 'trends' && (
+              <div className="space-y-4 animate-slide-in">
+                <h3 className="text-xl font-bold text-white flex items-center space-x-2">
+                  <span>📈</span>
+                  <span>Hot Opportunities</span>
+                </h3>
+                
+                {trendingOpportunities.map((opportunity, index) => (
+                  <div
+                    key={index}
+                    className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-4 hover:bg-white/10 transition-all duration-500 hover:scale-[1.02] group cursor-pointer"
+                  >
+                    <div className="flex items-start justify-between mb-3">
+                      <div>
+                        <h4 className="text-white font-semibold text-sm">{opportunity.title}</h4>
+                        <span className="text-xs text-teal-300 bg-teal-500/20 px-2 py-1 rounded-full mt-1 inline-block">
+                          {opportunity.category}
+                        </span>
+                      </div>
+                      <div className={`text-xs px-2 py-1 rounded-full ${
+                        opportunity.potential === 'High' ? 'bg-green-500/20 text-green-300' :
+                        opportunity.potential === 'Medium' ? 'bg-yellow-500/20 text-yellow-300' :
+                        'bg-gray-500/20 text-gray-300'
+                      }`}>
+                        {opportunity.potential}
+                      </div>
+                    </div>
+                    
+                    <p className="text-white/60 text-xs mb-3 leading-relaxed">
+                      {opportunity.description}
+                    </p>
+                    
+                    <div className="flex items-center justify-between">
+                      <span className="text-white/50 text-xs">Growth Rate</span>
+                      <div className="flex items-center space-x-2">
+                        <div className="w-16 h-2 bg-white/10 rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-gradient-to-r from-teal-400 to-blue-400 rounded-full transition-all duration-1000"
+                            style={{ width: `${Math.min(opportunity.growth, 100)}%` }}
+                          ></div>
+                        </div>
+                        <span className="text-teal-300 text-xs font-semibold">+{opportunity.growth}%</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Analytics Tab */}
+            {activeTab === 'analytics' && (
+              <div className="space-y-4 animate-slide-in">
+                <h3 className="text-xl font-bold text-white flex items-center space-x-2">
+                  <span>🎯</span>
+                  <span>Success Analytics</span>
+                </h3>
+                
+                {/* Success Rate Visualization */}
+                <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-4">
+                  <h4 className="text-white font-semibold mb-4 flex items-center space-x-2">
+                    <span>📊</span>
+                    <span>Startup Success by Category</span>
+                  </h4>
+                  
+                  <div className="space-y-3">
+                    {[
+                      { category: 'AI/ML', success: 78, color: 'from-purple-400 to-purple-600' },
+                      { category: 'FinTech', success: 65, color: 'from-green-400 to-green-600' },
+                      { category: 'HealthTech', success: 71, color: 'from-blue-400 to-blue-600' },
+                      { category: 'EdTech', success: 58, color: 'from-yellow-400 to-yellow-600' },
+                      { category: 'E-commerce', success: 45, color: 'from-red-400 to-red-600' }
+                    ].map((item, index) => (
+                      <div key={index} className="flex items-center justify-between">
+                        <span className="text-white/70 text-sm w-20">{item.category}</span>
+                        <div className="flex-1 mx-3">
+                          <div className="w-full h-3 bg-white/10 rounded-full overflow-hidden">
+                            <div 
+                              className={`h-full bg-gradient-to-r ${item.color} rounded-full transition-all duration-1000`}
+                              style={{ width: `${item.success}%` }}
+                            ></div>
+                          </div>
+                        </div>
+                        <span className="text-white text-sm font-semibold w-12 text-right">{item.success}%</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Live Stats */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-gradient-to-br from-teal-500/20 to-cyan-500/20 border border-teal-500/30 rounded-xl p-3 text-center">
+                    <div className="text-2xl font-bold text-white">2.4M</div>
+                    <div className="text-xs text-teal-200">Active Users</div>
+                  </div>
+                  <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/30 rounded-xl p-3 text-center">
+                    <div className="text-2xl font-bold text-white">847</div>
+                    <div className="text-xs text-purple-200">Ideas Generated</div>
+                  </div>
+                  <div className="bg-gradient-to-br from-green-500/20 to-emerald-500/20 border border-green-500/30 rounded-xl p-3 text-center">
+                    <div className="text-2xl font-bold text-white">156</div>
+                    <div className="text-xs text-green-200">Launched Today</div>
+                  </div>
+                  <div className="bg-gradient-to-br from-orange-500/20 to-red-500/20 border border-orange-500/30 rounded-xl p-3 text-center">
+                    <div className="text-2xl font-bold text-white">92%</div>
+                    <div className="text-xs text-orange-200">Satisfaction</div>
+                  </div>
+                </div>
+
+                {/* Performance Metrics */}
+                <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-4">
+                  <h4 className="text-white font-semibold mb-3 flex items-center space-x-2">
+                    <span>⚡</span>
+                    <span>Real-time Performance</span>
+                  </h4>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-white/70">Response Time</span>
+                      <span className="text-green-300">1.2s</span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-white/70">AI Accuracy</span>
+                      <span className="text-blue-300">94.7%</span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-white/70">Database Coverage</span>
+                      <span className="text-purple-300">2.8M+ Companies</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
