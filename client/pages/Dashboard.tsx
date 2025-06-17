@@ -326,7 +326,7 @@ const filtered = startups.filter((s) =>
         </div>
 
         {/* Right Panel - Enhanced Analytics Dashboard */}
-        <div className={`w-96 flex-shrink-0 p-6 space-y-6 overflow-y-auto relative z-20 transition-all duration-1000 delay-500 ${isLoaded ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'}`}>
+        <div className={`w-[28rem] flex-shrink-0 p-6 space-y-6 overflow-hidden relative z-20 transition-all duration-1000 delay-500 ${isLoaded ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'}`}>
           <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent backdrop-blur-sm border-l border-white/10"></div>
           
           <div className="relative z-10 space-y-6">
