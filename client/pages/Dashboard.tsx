@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 interface SearchBarProps {
   placeholder?: string;
   onSearch?: (value: string) => void;
+  value?: string;
 }
 
 interface Startup {
@@ -22,11 +23,8 @@ interface ResultCardProps {
 }
 
 // Built-in SearchBar Component with proper types
-const SearchBar: React.FC<SearchBarProps> = ({ placeholder = "Search...", onSearch }) => {
-  const [value, setValue] = useState<string>("");
-  
+const SearchBar: React.FC<SearchBarProps> = ({ placeholder = "Search...", onSearch, value = "" }) => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setValue(e.target.value);
     if (onSearch) {
       onSearch(e.target.value);
     }
@@ -93,6 +91,12 @@ const Dashboard: React.FC = () => {
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
+  const [pastQueries, setPastQueries] = useState<string[]>([]);
+  
+  const [searchInput, setSearchInput] = useState<string>("");  // for prompt
+  const [filterInput, setFilterInput] = useState<string>("");  // for filtering
+
+
 
   useEffect(() => {
     // Simulate loading animation
@@ -114,9 +118,12 @@ fetch("/api/start_session", {
 
 const handleAgentRequest = async () => {
   if (!sessionId) return alert("❌ No session ID. Try refreshing.");
+  if (!searchInput.trim()) return;
 
-  setIsLoading(true); // Show loading screen
-  setAgentResponse(""); // Clear previous response
+  setIsLoading(true);
+  setAgentResponse("");
+
+const currentPrompt = searchInput;
 
   try {
     const res = await fetch("/api/run_agent", {
@@ -124,15 +131,18 @@ const handleAgentRequest = async () => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         session_id: sessionId,
-        user_input: search || "Give me a startup idea to analyze.",
+        user_input: currentPrompt,
       }),
     });
 
     const data = await res.json();
+
     setTimeout(() => {
       setAgentResponse(data.response);
+      setPastQueries((prev) => [currentPrompt, ...prev]); // Push latest to top
+      setSearchInput("");
       setIsLoading(false);
-    }, 1800); // artificial delay for visual polish
+    }, 1800);
   } catch (err) {
     console.error("❌ Agent error:", err);
     alert("Failed to reach agent.");
@@ -142,10 +152,11 @@ const handleAgentRequest = async () => {
 
 
 
-  const filtered = startups.filter((s) =>
-    s.name.toLowerCase().includes(search.toLowerCase()) ||
-    s.tags.some((tag) => tag.toLowerCase().includes(search.toLowerCase()))
-  );
+const filtered = startups.filter((s) =>
+  s.name.toLowerCase().includes(filterInput.toLowerCase()) ||
+  s.tags.some((tag) => tag.toLowerCase().includes(filterInput.toLowerCase()))
+);
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-teal-900 text-white font-sans overflow-hidden">
@@ -223,10 +234,12 @@ const handleAgentRequest = async () => {
               
               {/* Search Input */}
               <div className="space-y-8">
-                <SearchBar
+<SearchBar
   placeholder="✨ Describe your startup idea and watch the magic unfold..."
-  onSearch={setSearch}
+  value={searchInput}
+  onSearch={setSearchInput}
 />
+
 
 {isLoading ? (
   <div className="flex flex-col items-center justify-center mt-6 space-y-4">
@@ -271,11 +284,24 @@ const handleAgentRequest = async () => {
                 <span className="text-2xl">🔍</span>
                 <h3 className="text-2xl font-bold text-white">Discover Startups</h3>
               </div>
-              <SearchBar placeholder="Search amazing startups..." onSearch={setSearch} />
+<SearchBar
+  placeholder="Search amazing startups..."
+  value={filterInput}
+  onSearch={setFilterInput}
+/>
+
+
             </div>
             
             {/* Results */}
             <div className="space-y-4">
+              {pastQueries.length > 0 && (
+  <div className="bg-white/5 p-4 rounded-xl border border-white/10 text-white/70 text-sm space-y-2">
+    <h4 className="text-teal-300 font-semibold mb-2">🧠 Last Prompt</h4>
+    <p className="text-white/80">{pastQueries[0]}</p>
+  </div>
+)}
+
               {filtered.length > 0 ? (
                 filtered.map((startup, index) => (
                   <div
