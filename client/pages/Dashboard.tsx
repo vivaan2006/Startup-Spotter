@@ -153,7 +153,7 @@ try {
   }
 } catch {
   // fallback: split lines and show basic cards
-  const lines = data.response.split("\n").filter((line) => line.trim() !== "");
+  const lines = data.response.split("\n").filter((line: string) => line.trim() !== "");
   const parsed = lines.map((line: string, idx: number): Startup => ({
     _id: `${idx}`,
     name: line.slice(0, 30),
