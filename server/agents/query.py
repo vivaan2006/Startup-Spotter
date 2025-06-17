@@ -29,3 +29,13 @@ async def handle_user_prompt(session_id, prompt):
             if event.content and event.content.parts:
                 print(f"Final Response: {event.content.parts[0].text}")
                 return {event.content.parts[0].text}
+            
+if __name__ == "__main__":
+    # Example usage
+    session_id = SESSION_ID  # Assuming you have a valid session ID
+    user_input = "I have $10000 to start a business in Queens, NY"
+    
+    # Run the prompt handler
+    asyncio.run(handle_user_prompt(session_id, user_input))
+    
+    # Note: In a real application, you would handle the session state and user input more robustly.

@@ -1,5 +1,6 @@
 from google.adk.agents import Agent
 from .prompts import MONOGO_DB_DATA_FETCHER_INSTRUCTIONS
+from .vectorQuery import vector_search
 
 mongoDB_data_fetcher = Agent(
     name="mongoDB_data_fetcher",

@@ -7,34 +7,27 @@ from .utils.update_budget import update_budget
 from .utils.update_location import update_location
 from .utils.update_interests import update_interests
 from .utils.update_steps import update_steps
+from .utils.update_idea import update_idea
 from .sub_agents.research_agent.agent import research_agent
-from google.adk.tools.mcp_tool.mcp_toolset import MCPToolset
-from mcp.client.stdio import StdioServerParameters
 
 update_states = SequentialAgent(
     name="update_states",
-    sub_agents=[update_budget, update_location, update_interests, research_agent],
-    description="Pipeline to update session states."
+    sub_agents=[update_budget, update_location, update_interests],
+    description="Pipeline to update the budget, location, and interests sessions states."
 )
-
-# research_and_idea_agent = SequentialAgent(
-#     name="research_and_idea_agent",
-#     sub_agents=[research_agent, idea_agent],
-#     description="Pipeline to research existing businesses and generate startup ideas."
-# )
 
 
 root_agent = Agent(
     name="root_agent",
     model="gemini-2.0-flash",
     description=(
-        "A bot that gives startup recommendations based on demand patterns and budget."
+        "Root agent that manages the session and coordinates other agents. It updates session states based on user input and can call the research agent to gather information about a location, an idea agent to generate business ideas, and a steps agent to generate business steps."
     ),
     instruction=(
-        #ROOT_AGENT_INSTRUCTIONS
-        "Call update_states to update the session states based on user input. Then call research_and_idea agent and return its output. You are friendly."
+        ROOT_AGENT_INSTRUCTIONS
+
     ),
-    tools=[AgentTool(steps_agent), AgentTool(update_states), AgentTool(update_steps), AgentTool(research_agent), AgentTool(idea_agent) ],
+    tools=[AgentTool(research_agent), AgentTool(idea_agent), AgentTool(steps_agent), AgentTool(update_states), AgentTool(update_steps),  AgentTool(update_idea)],
     
 )
 

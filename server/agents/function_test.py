@@ -19,7 +19,7 @@ async def main():
             break
         else:
             # Handle the user input
-            response = await handle_user_prompt(SESSION_ID, user_input)
+            response = await handle_user_prompt(session_id, user_input)
             print(f"Response: {response}")
     session = await session_service_stateful.get_session(
         app_name=APP_NAME,
