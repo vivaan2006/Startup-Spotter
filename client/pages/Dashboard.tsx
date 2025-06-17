@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 interface SearchBarProps {
   placeholder?: string;
   onSearch?: (value: string) => void;
+  value?: string;
 }
 
 interface Startup {
@@ -21,12 +22,24 @@ interface ResultCardProps {
   website: string;
 }
 
+interface TrendingOpportunity {
+  title: string;
+  growth: number;
+  category: string;
+  description: string;
+  potential: 'High' | 'Medium' | 'Low';
+}
+
+interface MarketInsight {
+  metric: string;
+  value: string;
+  change: number;
+  icon: string;
+}
+
 // Built-in SearchBar Component with proper types
-const SearchBar: React.FC<SearchBarProps> = ({ placeholder = "Search...", onSearch }) => {
-  const [value, setValue] = useState<string>("");
-  
+const SearchBar: React.FC<SearchBarProps> = ({ placeholder = "Search...", onSearch, value = "" }) => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setValue(e.target.value);
     if (onSearch) {
       onSearch(e.target.value);
     }
@@ -91,91 +104,114 @@ const Dashboard: React.FC = () => {
   const [agentResponse, setAgentResponse] = useState<string>("");
   const [sessionId, setSessionId] = useState<string | null>(null);
 
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  const [pastQueries, setPastQueries] = useState<string[]>([]);
+  
+  const [searchInput, setSearchInput] = useState<string>("");  // for prompt
+  const [filterInput, setFilterInput] = useState<string>("");  // for filtering
+
+  // New state for right panel
+  const [activeTab, setActiveTab] = useState<'insights' | 'trends' | 'analytics'>('insights');
+  const [marketInsights, setMarketInsights] = useState<MarketInsight[]>([]);
+  const [trendingOpportunities, setTrendingOpportunities] = useState<TrendingOpportunity[]>([]);
+
   useEffect(() => {
     // Simulate loading animation
     setTimeout(() => setIsLoaded(true), 500);
     
-fetch("/api/start_session", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ user_id: "vivaan" })
-})
-  .then((res) => res.json())
-  .then((data) => {
-    console.log("✅ Got session:", data);
-    setSessionId(data.session_id);
-  })
-  .catch((err) => console.error("❌ Failed to start session:", err));
+    // Initialize market insights
+    setMarketInsights([
+      { metric: "Market Size", value: "$2.3T", change: 12.5, icon: "📈" },
+      { metric: "New Startups", value: "1,247", change: 8.2, icon: "🚀" },
+      { metric: "Funding Volume", value: "$89.2B", change: -3.1, icon: "💰" },
+      { metric: "Success Rate", value: "23.4%", change: 5.7, icon: "🎯" }
+    ]);
+
+    // Initialize trending opportunities
+    setTrendingOpportunities([
+      {
+        title: "AI-Powered Healthcare",
+        growth: 89.5,
+        category: "HealthTech",
+        description: "AI diagnostics and personalized medicine solutions",
+        potential: "High"
+      },
+      {
+        title: "Sustainable Energy",
+        growth: 67.3,
+        category: "CleanTech",
+        description: "Solar and wind energy optimization platforms",
+        potential: "High"
+      },
+      {
+        title: "EdTech Platforms",
+        growth: 45.2,
+        category: "Education",
+        description: "Interactive learning and remote education tools",
+        potential: "Medium"
+      },
+      {
+        title: "FinTech Solutions",
+        growth: 34.8,
+        category: "Finance",
+        description: "Digital banking and cryptocurrency services",
+        potential: "Medium"
+      }
+    ]);
+    
+    fetch("/api/start_session", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ user_id: "vivaan" })
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        console.log("✅ Got session:", data);
+        setSessionId(data.session_id);
+      })
+      .catch((err) => console.error("❌ Failed to start session:", err));
 
   }, []);
 
-const handleAgentRequest = async (mode: "analyze" | "generate") => {
+const handleAgentRequest = async () => {
   if (!sessionId) return alert("❌ No session ID. Try refreshing.");
+  if (!searchInput.trim()) return;
+
+  setIsLoading(true);
+  setAgentResponse("");
+
+const currentPrompt = searchInput;
 
   try {
     const res = await fetch("/api/run_agent", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-body: JSON.stringify({
-  session_id: sessionId,
-  user_input:
-    mode === "generate"
-      ? `Give me a JSON array of 5 startup ideas. Each idea must include: name, summary, tags (array), and website (optional). Format the entire response as pure JSON only. ${
-          search ? "Focus on: " + search : ""
-        }`
-: search || "Give me a startup idea to analyze.",
-}),
-
+      body: JSON.stringify({
+        session_id: sessionId,
+        user_input: currentPrompt,
+      }),
     });
 
     const data = await res.json();
 
-    if (mode === "analyze") {
+    setTimeout(() => {
       setAgentResponse(data.response);
-    } else if (mode === "generate") {
-      // Attempt to parse startup ideas if returned as JSON
-try {
-  const ideas = JSON.parse(data.response);
-
-  // Validate it’s an array of objects with a name and summary
-  if (Array.isArray(ideas) && ideas.every((idea) => idea.name && idea.summary)) {
-    setStartups(
-      ideas.map((idea, idx) => ({
-        _id: `${idx}`,
-        name: idea.name,
-        summary: idea.summary,
-        tags: idea.tags || [],
-        website: idea.website || "",
-      }))
-    );
-  } else {
-    throw new Error("Invalid JSON structure");
-  }
-} catch {
-  // fallback: split lines and show basic cards
-  const lines = data.response.split("\n").filter((line: string) => line.trim() !== "");
-  const parsed = lines.map((line: string, idx: number): Startup => ({
-    _id: `${idx}`,
-    name: line.slice(0, 30),
-    summary: line,
-    tags: [],
-    website: "",
-  }));
-  setStartups(parsed);
-}
-
-    }
+      setPastQueries((prev) => [currentPrompt, ...prev]); // Push latest to top
+      setSearchInput("");
+      setIsLoading(false);
+    }, 1800);
   } catch (err) {
     console.error("❌ Agent error:", err);
     alert("Failed to reach agent.");
+    setIsLoading(false);
   }
 };
 
-
-  const filtered = startups.filter((s) =>
-    s.name.toLowerCase().includes(search.toLowerCase()) ||
-    s.tags.some((tag) => tag.toLowerCase().includes(search.toLowerCase()))
-  );
+const filtered = startups.filter((s) =>
+  s.name.toLowerCase().includes(filterInput.toLowerCase()) ||
+  s.tags.some((tag) => tag.toLowerCase().includes(filterInput.toLowerCase()))
+);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-teal-900 text-white font-sans overflow-hidden">
@@ -253,83 +289,252 @@ try {
               
               {/* Search Input */}
               <div className="space-y-8">
-                <SearchBar
+<SearchBar
   placeholder="✨ Describe your startup idea and watch the magic unfold..."
-  onSearch={setSearch}
+  value={searchInput}
+  onSearch={setSearchInput}
 />
 
-                {agentResponse && (
-  <div className="bg-white/10 text-white p-6 rounded-xl border border-teal-500/20 shadow-md mt-6">
-    <h4 className="text-lg font-bold mb-2 text-teal-300">📬 Agent Response</h4>
-    <p className="whitespace-pre-line leading-relaxed text-white/80">{agentResponse}</p>
+{isLoading ? (
+  <div className="flex flex-col items-center justify-center mt-6 space-y-4">
+    <div className="w-12 h-12 border-4 border-teal-400 border-t-transparent rounded-full animate-spin"></div>
+    <p className="text-white/70 text-sm">Analyzing your idea… hang tight ✨</p>
   </div>
+) : (
+  agentResponse && (
+    <div className="bg-white/10 text-white p-6 rounded-xl border border-teal-500/20 shadow-md mt-6">
+      <h4 className="text-lg font-bold mb-2 text-teal-300">📬 Agent Response</h4>
+      <p className="whitespace-pre-line leading-relaxed text-white/80">{agentResponse}</p>
+    </div>
+  )
 )}
 
-                
                 {/* Action Buttons */}
-                <div className="flex justify-center space-x-6">
-<button
-  onClick={() => handleAgentRequest("analyze")}
-  className="px-8 py-4 bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-400 hover:to-teal-500 rounded-2xl font-bold transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-teal-500/25 flex items-center space-x-2"
->
-  <span>🎯</span>
-  <span>Analyze Market</span>
-</button>
+<div className="flex justify-center">
+  <button
+    onClick={handleAgentRequest}
+    className="px-8 py-4 bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-400 hover:to-teal-500 rounded-2xl font-bold transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-teal-500/25 flex items-center space-x-2"
+  >
+    <span>🚀</span>
+    <span>Enter</span>
+  </button>
+</div>
 
-<button
-  onClick={() => handleAgentRequest("generate")}
-  className="px-8 py-4 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 rounded-2xl font-bold transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/25 flex items-center space-x-2"
->
-  <span>💡</span>
-  <span>Generate Ideas</span>
-</button>
-
-
-                </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Right Panel - Startup Discovery */}
-        <div className={`w-96 flex-shrink-0 p-6 space-y-6 overflow-y-auto relative z-20 transition-all duration-1000 delay-500 ${isLoaded ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'}`}>
+        {/* Right Panel - Enhanced Analytics Dashboard */}
+        <div className={`w-[28rem] flex-shrink-0 p-6 space-y-6 overflow-hidden relative z-20 transition-all duration-1000 delay-500 ${isLoaded ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'}`}>
           <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent backdrop-blur-sm border-l border-white/10"></div>
           
           <div className="relative z-10 space-y-6">
-            {/* Header */}
-            <div className="text-center">
-              <div className="flex items-center justify-center space-x-3 mb-4">
-                <span className="text-2xl">🔍</span>
-                <h3 className="text-2xl font-bold text-white">Discover Startups</h3>
-              </div>
-              <SearchBar placeholder="Search amazing startups..." onSearch={setSearch} />
+            {/* Tab Navigation */}
+            <div className="flex space-x-2 bg-white/5 rounded-2xl p-2 border border-white/10">
+              {[
+                { id: 'insights', label: 'Insights', icon: '📊' },
+                { id: 'trends', label: 'Trends', icon: '📈' },
+                { id: 'analytics', label: 'Analytics', icon: '🎯' }
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id as any)}
+                  className={`flex-1 flex items-center justify-center space-x-2 py-3 px-4 rounded-xl font-medium transition-all duration-300 ${
+                    activeTab === tab.id
+                      ? 'bg-gradient-to-r from-teal-500 to-blue-500 text-white shadow-lg'
+                      : 'text-white/60 hover:text-white hover:bg-white/10'
+                  }`}
+                >
+                  <span>{tab.icon}</span>
+                  <span className="text-sm">{tab.label}</span>
+                </button>
+              ))}
             </div>
-            
-            {/* Results */}
-            <div className="space-y-4">
-              {filtered.length > 0 ? (
-                filtered.map((startup, index) => (
+
+            {/* Market Insights Tab */}
+            {activeTab === 'insights' && (
+              <div className="space-y-4 animate-slide-in">
+                <h3 className="text-xl font-bold text-white flex items-center space-x-2">
+                  <span>📊</span>
+                  <span>Market Insights</span>
+                </h3>
+                
+                {marketInsights.map((insight, index) => (
                   <div
-                    key={startup._id}
-                    className="animate-slide-in"
-                    style={{
-                      animationDelay: `${index * 100}ms`,
-                      animationFillMode: 'both'
-                    }}
+                    key={index}
+                    className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-4 hover:bg-white/10 transition-all duration-300 group"
                   >
-                    <ResultCard {...startup} />
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center space-x-2">
+                        <span className="text-lg">{insight.icon}</span>
+                        <span className="text-white/70 text-sm font-medium">{insight.metric}</span>
+                      </div>
+                      <div className={`text-xs px-2 py-1 rounded-full ${
+                        insight.change > 0
+                          ? 'bg-green-500/20 text-green-300'
+                          : 'bg-red-500/20 text-red-300'
+                      }`}>
+                        {insight.change > 0 ? '+' : ''}{insight.change}%
+                      </div>
+                    </div>
+                    <div className="text-2xl font-bold text-white">{insight.value}</div>
                   </div>
-                ))
-              ) : (
-                <div className="text-center py-16 space-y-4">
-                  <div className="text-6xl opacity-50">🌟</div>
+                ))}
+
+                {/* Quick Actions */}
+                <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/30 rounded-2xl p-4">
+                  <h4 className="text-white font-semibold mb-3 flex items-center space-x-2">
+                    <span>⚡</span>
+                    <span>Quick Actions</span>
+                  </h4>
                   <div className="space-y-2">
-                    <p className="text-white/60 font-medium">Ready to explore?</p>
-                    <p className="text-white/40 text-sm">Start searching to discover incredible startups!</p>
+                    <button className="w-full text-left bg-white/10 hover:bg-white/20 rounded-xl p-3 text-sm text-white/80 transition-all duration-300 hover:scale-105">
+                      🔍 Analyze Market Opportunity
+                    </button>
+                    <button className="w-full text-left bg-white/10 hover:bg-white/20 rounded-xl p-3 text-sm text-white/80 transition-all duration-300 hover:scale-105">
+                      💡 Generate Business Ideas
+                    </button>
+                    <button className="w-full text-left bg-white/10 hover:bg-white/20 rounded-xl p-3 text-sm text-white/80 transition-all duration-300 hover:scale-105">
+                      🎯 Find Target Audience
+                    </button>
                   </div>
                 </div>
-              )}
-            </div>
+              </div>
+            )}
+
+            {/* Trending Opportunities Tab */}
+            {activeTab === 'trends' && (
+              <div className="space-y-4 animate-slide-in">
+                <h3 className="text-xl font-bold text-white flex items-center space-x-2">
+                  <span>📈</span>
+                  <span>Hot Opportunities</span>
+                </h3>
+                
+                {trendingOpportunities.map((opportunity, index) => (
+                  <div
+                    key={index}
+                    className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-4 hover:bg-white/10 transition-all duration-500 hover:scale-[1.02] group cursor-pointer"
+                  >
+                    <div className="flex items-start justify-between mb-3">
+                      <div>
+                        <h4 className="text-white font-semibold text-sm">{opportunity.title}</h4>
+                        <span className="text-xs text-teal-300 bg-teal-500/20 px-2 py-1 rounded-full mt-1 inline-block">
+                          {opportunity.category}
+                        </span>
+                      </div>
+                      <div className={`text-xs px-2 py-1 rounded-full ${
+                        opportunity.potential === 'High' ? 'bg-green-500/20 text-green-300' :
+                        opportunity.potential === 'Medium' ? 'bg-yellow-500/20 text-yellow-300' :
+                        'bg-gray-500/20 text-gray-300'
+                      }`}>
+                        {opportunity.potential}
+                      </div>
+                    </div>
+                    
+                    <p className="text-white/60 text-xs mb-3 leading-relaxed">
+                      {opportunity.description}
+                    </p>
+                    
+                    <div className="flex items-center justify-between">
+                      <span className="text-white/50 text-xs">Growth Rate</span>
+                      <div className="flex items-center space-x-2">
+                        <div className="w-16 h-2 bg-white/10 rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-gradient-to-r from-teal-400 to-blue-400 rounded-full transition-all duration-1000"
+                            style={{ width: `${Math.min(opportunity.growth, 100)}%` }}
+                          ></div>
+                        </div>
+                        <span className="text-teal-300 text-xs font-semibold">+{opportunity.growth}%</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Analytics Tab */}
+            {activeTab === 'analytics' && (
+              <div className="space-y-4 animate-slide-in">
+                <h3 className="text-xl font-bold text-white flex items-center space-x-2">
+                  <span>🎯</span>
+                  <span>Success Analytics</span>
+                </h3>
+                
+                {/* Success Rate Visualization */}
+                <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-4">
+                  <h4 className="text-white font-semibold mb-4 flex items-center space-x-2">
+                    <span>📊</span>
+                    <span>Startup Success by Category</span>
+                  </h4>
+                  
+                  <div className="space-y-3">
+                    {[
+                      { category: 'AI/ML', success: 78, color: 'from-purple-400 to-purple-600' },
+                      { category: 'FinTech', success: 65, color: 'from-green-400 to-green-600' },
+                      { category: 'HealthTech', success: 71, color: 'from-blue-400 to-blue-600' },
+                      { category: 'EdTech', success: 58, color: 'from-yellow-400 to-yellow-600' },
+                      { category: 'E-commerce', success: 45, color: 'from-red-400 to-red-600' }
+                    ].map((item, index) => (
+                      <div key={index} className="flex items-center justify-between">
+                        <span className="text-white/70 text-sm w-20">{item.category}</span>
+                        <div className="flex-1 mx-3">
+                          <div className="w-full h-3 bg-white/10 rounded-full overflow-hidden">
+                            <div 
+                              className={`h-full bg-gradient-to-r ${item.color} rounded-full transition-all duration-1000`}
+                              style={{ width: `${item.success}%` }}
+                            ></div>
+                          </div>
+                        </div>
+                        <span className="text-white text-sm font-semibold w-12 text-right">{item.success}%</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Live Stats */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-gradient-to-br from-teal-500/20 to-cyan-500/20 border border-teal-500/30 rounded-xl p-3 text-center">
+                    <div className="text-2xl font-bold text-white">2.4M</div>
+                    <div className="text-xs text-teal-200">Active Users</div>
+                  </div>
+                  <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/30 rounded-xl p-3 text-center">
+                    <div className="text-2xl font-bold text-white">847</div>
+                    <div className="text-xs text-purple-200">Ideas Generated</div>
+                  </div>
+                  <div className="bg-gradient-to-br from-green-500/20 to-emerald-500/20 border border-green-500/30 rounded-xl p-3 text-center">
+                    <div className="text-2xl font-bold text-white">156</div>
+                    <div className="text-xs text-green-200">Launched Today</div>
+                  </div>
+                  <div className="bg-gradient-to-br from-orange-500/20 to-red-500/20 border border-orange-500/30 rounded-xl p-3 text-center">
+                    <div className="text-2xl font-bold text-white">92%</div>
+                    <div className="text-xs text-orange-200">Satisfaction</div>
+                  </div>
+                </div>
+
+                {/* Performance Metrics */}
+                <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-4">
+                  <h4 className="text-white font-semibold mb-3 flex items-center space-x-2">
+                    <span>⚡</span>
+                    <span>Real-time Performance</span>
+                  </h4>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-white/70">Response Time</span>
+                      <span className="text-green-300">1.2s</span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-white/70">AI Accuracy</span>
+                      <span className="text-blue-300">94.7%</span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-white/70">Database Coverage</span>
+                      <span className="text-purple-300">2.8M+ Companies</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
