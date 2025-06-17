@@ -34,6 +34,7 @@ If an error occurs while generating the steps, return a dictionary formatted as 
 }
 
 The steps should be practical and tailored to the user's specific business idea, budget, and location.
+Be as specific as possible in your descriptions, ensuring that the user can understand and follow each step easily.
 
 Exact budget allocation should be included when applicable.
 
