@@ -1,55 +1,62 @@
 // app.ts
 
-import express, { Request, Response, NextFunction } from 'express';
+import express from 'express';
 import cors from 'cors';
 import mongoose from 'mongoose';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
+import axios from 'axios';
+
+dotenv.config();
+
 import startupRoutes from "./src/routes/startup";
 import searchRoutes from "./src/routes/search";
 
-dotenv.config();  // ← loads PORT and MONGO_URI from server/.env
-
 const app = express();
 
-// 1) Enable CORS so your React app at http://localhost:5173 can hit this API
 app.use(cors());
-
-// 2) Parse JSON bodies
 app.use(express.json());
-
-// 3) HTTP request logger
 app.use(morgan('dev'));
 
-// 4) Connect to MongoDB Atlas using MONGO_URI from .env
-mongoose
-  .connect(process.env.MONGO_URI!)
-  .then(() => {
-    console.log('✅ MongoDB (Atlas) connected');
+mongoose.connect(process.env.MONGO_URI || '', {})
+  .then(() => console.log('✅ MongoDB connected'))
+  .catch(err => console.error('❌ MongoDB connection error:', err));
 
-    app.use("/api/startups", startupRoutes);
-    console.log("✅ /api/startups route registered"); // <--- Add this
+app.use("/api/startup", startupRoutes);
+app.use("/api/search", searchRoutes);
 
-    app.use("/api/search", searchRoutes)
-    
-    // Optional: confirm other things like root works
-    app.get("/", (_req, res) => {
-      console.log("↪ Hit GET /");
-      res.status(200).send("✅ Root OK");
-    });
+const AGENT_SERVER_URL = 'http://127.0.0.1:8000';
 
-    // 7) 404 handler for unhandled routes
-    app.use((_req, res) => {
-      res.status(404).json({ error: 'Not Found' });
+
+app.post("/api/start_session", async (req, res) => {
+  const { user_id } = req.body;
+
+  try {
+    const response = await axios.post(`${AGENT_SERVER_URL}/start_session`, { user_id });
+    res.json(response.data);
+  } catch (err) {
+    console.error('❌ Error starting session:', err);
+    res.status(500).json({ error: 'Failed to start session' });
+  }
+});
+
+app.post("/api/run_agent", async (req, res) => {
+  const { session_id, user_input } = req.body;
+
+  try {
+    const response = await axios.post(`${AGENT_SERVER_URL}/run_agent`, {
+      session_id,
+      user_input
     });
-    
-    // 8) Start server
-    const PORT = parseInt(process.env.PORT || '5000', 10);
-    app.listen(PORT, () => {
-      console.log(`🚀 Server running on port ${PORT}`);
-    });
-  })
-  .catch(err => {
-    console.error('❌ MongoDB connection error:', err);
-    process.exit(1);
-  });
+    res.json(response.data);
+  } catch (err) {
+    console.error('❌ Error running agent:', err);
+    res.status(500).json({ error: 'Failed to run agent' });
+  }
+});
+
+app.get("/", (req, res) => {
+  res.send("✅ Express server is running.");
+});
+
+export default app;
